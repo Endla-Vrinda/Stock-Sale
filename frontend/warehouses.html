@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Warehouses - StockSense</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <main>
+
+        <div class="topbar">
+
+            <div>
+                <h1>Warehouses</h1>
+                <p>Manage warehouses and storage locations</p>
+            </div>
+
+            <a href="settings.html">
+                Back to Settings
+            </a>
+
+        </div>
+
+        <section class="panel">
+
+            <form id="warehouseForm">
+
+                <label>
+                    Warehouse Name
+                </label>
+
+                <input
+                    type="text"
+                    id="warehouseName"
+                    placeholder="Enter warehouse name"
+                    required
+                >
+
+                <label>
+                    Location
+                </label>
+
+                <input
+                    type="text"
+                    id="location"
+                    placeholder="Enter warehouse location"
+                    required
+                >
+
+                <button type="submit">
+                    Add Warehouse
+                </button>
+
+            </form>
+
+            <p id="message"></p>
+
+        </section>
+
+        <section class="panel">
+
+            <h2>Warehouse List</h2>
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>ID</th>
+                        <th>Warehouse</th>
+                        <th>Location</th>
+                    </tr>
+
+                </thead>
+
+                <tbody id="warehouseTable">
+
+                    <tr>
+                        <td colspan="3">
+                            Loading warehouses...
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </section>
+
+    </main>
+
+    <script>
+
+        const warehouseForm =
+            document.getElementById("warehouseForm");
+
+        warehouseForm.addEventListener(
+            "submit",
+            async function(event)
+            {
+                event.preventDefault();
+
+                const body =
+                    new URLSearchParams();
+
+                body.append(
+                    "name",
+                    document.getElementById(
+                        "warehouseName"
+                    ).value
+                );
+
+                body.append(
+                    "location",
+                    document.getElementById(
+                        "location"
+                    ).value
+                );
+
+                const response =
+                    await fetch(
+                        "/cgi-bin/warehouse.exe/create",
+                        {
+                            method: "POST",
+                            body: body
+                        }
+                    );
+
+                const result =
+                    await response.json();
+
+                document.getElementById(
+                    "message"
+                ).textContent =
+                    result.message;
+
+                if (result.success)
+                {
+                    warehouseForm.reset();
+                    loadWarehouses();
+                }
+            }
+        );
+
+        async function loadWarehouses()
+        {
+            const response =
+                await fetch(
+                    "/cgi-bin/warehouse.exe/list"
+                );
+
+            const data =
+                await response.json();
+
+            const table =
+                document.getElementById(
+                    "warehouseTable"
+                );
+
+            table.innerHTML = "";
+
+            data.forEach(
+                function(warehouse)
+                {
+                    const row =
+                        document.createElement("tr");
+
+                    row.innerHTML = `
+                        <td>${warehouse.warehouse_id}</td>
+                        <td>${warehouse.warehouse_name}</td>
+                        <td>${warehouse.location}</td>
+                    `;
+
+                    table.appendChild(row);
+                }
+            );
+        }
+
+        loadWarehouses();
+
+    </script>
+
+</body>
+
+</html>

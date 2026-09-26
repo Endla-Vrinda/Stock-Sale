@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Receipts - StockSense</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <main>
+
+        <div class="topbar">
+
+            <div>
+                <h1>Receipts</h1>
+                <p>Receive products from suppliers</p>
+            </div>
+
+            <a href="operations.html">
+                Back to Operations
+            </a>
+
+        </div>
+
+        <section class="panel">
+
+            <form id="receiptForm">
+
+                <label>
+                    Supplier
+                </label>
+
+                <input
+                    type="text"
+                    id="supplier"
+                    placeholder="Enter supplier name"
+                    required
+                >
+
+                <label>
+                    Product ID
+                </label>
+
+                <input
+                    type="number"
+                    id="productId"
+                    placeholder="Enter product ID"
+                    required
+                >
+
+                <label>
+                    Quantity
+                </label>
+
+                <input
+                    type="number"
+                    id="quantity"
+                    min="1"
+                    placeholder="Enter quantity"
+                    required
+                >
+
+                <button type="submit">
+                    Validate Receipt
+                </button>
+
+            </form>
+
+            <p id="message"></p>
+
+        </section>
+
+        <section class="panel">
+
+            <h2>Receipt History</h2>
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>ID</th>
+                        <th>Supplier</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+
+                </thead>
+
+                <tbody id="receiptTable">
+
+                    <tr>
+                        <td colspan="4">
+                            Loading receipts...
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </section>
+
+    </main>
+
+    <script src="js/operations.js"></script>
+
+</body>
+
+</html>

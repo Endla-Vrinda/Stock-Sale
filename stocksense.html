@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>StockSense — Inventory Management</title>
+<style>
+:root{--ink:#12131c;--panel:#171a2b;--panel2:#1e2238;--accent:#4f46e5;--accent2:#6a62f0;--bg:#f4f5fa;--card:#fff;--line:#e4e6f0;--text:#1a1c29;--muted:#6b6f85;--green:#0f9d58;--red:#d93025;--amber:#e8710a;--blue:#2563eb;}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text)}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer;border:0;border-radius:8px;padding:10px 16px;font-weight:600}
+.btn-p{background:var(--accent);color:#fff}
+.btn-p:hover{background:var(--accent2)}
+.btn-s{background:#eceefb;color:#333}
+.btn-d{background:#fdeceb;color:var(--red)}
+.btn-g{background:#e7f6ee;color:var(--green)}
+.hidden{display:none!important}
+input,select,textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 11px;background:#fff}
+textarea{min-height:70px}
+label{display:block;font-size:12px;font-weight:700;margin-bottom:5px;color:#333}
+.fg{margin-bottom:14px}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+.auth{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 15% 20%,#2a2f52,transparent 40%),var(--ink);padding:20px}
+.auth-card{width:100%;max-width:400px;background:#fff;border-radius:16px;padding:34px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px}
+.logo i{width:36px;height:36px;background:var(--accent);color:#fff;border-radius:9px;display:grid;place-items:center;font-style:normal}
+.auth-card h1{margin:22px 0 6px;font-size:23px}
+.auth-card p{color:var(--muted);margin:0 0 20px;font-size:14px}
+.switch{text-align:center;margin-top:16px;font-size:13.5px;color:var(--muted)}
+.lnk{color:var(--accent);font-weight:700;cursor:pointer}
+.app{display:flex;min-height:100vh}
+.side{width:230px;background:var(--panel);color:#c7c9de;flex:none;position:sticky;top:0;height:100vh;padding:18px 12px;overflow-y:auto}
+.side .logo{padding:4px 8px 22px;color:#fff}
+.mtit{color:#71748f;font-size:10px;font-weight:800;letter-spacing:.6px;padding:14px 10px 6px}
+.item{padding:10px 11px;border-radius:8px;margin:2px 0;display:flex;gap:10px;align-items:center;font-size:13.5px}
+.item:hover,.item.on{background:var(--panel2);color:#fff}
+.main{flex:1;min-width:0}
+.top{height:64px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:5}
+.top b{font-size:16px}
+.who{display:flex;align-items:center;gap:9px}
+.av{width:34px;height:34px;background:#e9e7ff;color:var(--accent);border-radius:50%;display:grid;place-items:center;font-weight:800}
+.content{padding:22px 26px 60px;max-width:1500px;margin:auto}
+.phead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+.phead h1{margin:0;font-size:21px}
+.phead p{margin:3px 0 0;color:var(--muted);font-size:13.5px}
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:18px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+.kpi b{font-size:24px;display:block;margin-top:10px}
+.kpi span{font-size:11.5px;color:var(--muted)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:16px}
+.chead{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:14px}
+.cbody{padding:16px 18px}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:10.5px;text-transform:uppercase;color:var(--muted);padding:10px 12px;border-bottom:1px solid var(--line)}
+td{padding:11px 12px;border-bottom:1px solid #f1f1f6;font-size:13px}
+.badge{display:inline-block;padding:4px 9px;border-radius:20px;font-size:10.5px;font-weight:800}
+.b-done{background:#e6f7ee;color:var(--green)}.b-ready{background:#e8f0ff;color:var(--blue)}.b-draft{background:#eee;color:#666}.b-cancel{background:#fdeceb;color:var(--red)}
+.pos{color:var(--green);font-weight:800}.neg{color:var(--red);font-weight:800}
+.toolbar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.toolbar input{flex:1;min-width:200px}
+.toolbar select{min-width:150px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.mback{position:fixed;inset:0;background:rgba(10,10,20,.55);display:none;align-items:center;justify-content:center;padding:20px;z-index:100}
+.mback.show{display:flex}
+.modal{width:100%;max-width:600px;max-height:88vh;overflow-y:auto;background:#fff;border-radius:14px}
+.mhead{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.mfoot{padding:14px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:10px}
+.mbody{padding:20px}
+.x{background:none;border:0;font-size:20px;padding:2px 6px}
+.toast{position:fixed;right:20px;bottom:20px;background:var(--ink);color:#fff;padding:12px 16px;border-radius:9px;z-index:999;display:none}
+.toast.show{display:block}.toast.ok{background:#0f7a41}.toast.err{background:#b3261e}
+.alert{padding:12px 14px;border-radius:9px;margin-bottom:9px;font-size:13px}
+.a-amber{background:#fff4e5}.a-red{background:#fdeceb}.a-blue{background:#e8f0ff}
+.mobtn{display:none;background:none;font-size:20px}
+@media(max-width:1050px){.kpis{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:820px){.side{position:fixed;left:-240px;z-index:50;transition:.2s}.side.open{left:0}.main{width:100%}.mobtn{display:block}.kpis{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div id="authPage" class="auth">
+  <div class="auth-card">
+    <div class="logo"><i>S</i>StockSense</div>
+    <div id="loginBox">
+      <h1>Welcome back</h1><p>Sign in to your inventory workspace.</p>
+      <div class="fg"><label>Email</label><input id="lEmail" value="admin@stocksense.local"></div>
+      <div class="fg"><label>Password</label><input id="lPass" type="password" value="admin123"></div>
+      <button class="btn-p" style="width:100%" onclick="login()">Sign In</button>
+      <div class="switch">No account? <span class="lnk" onclick="show('signupBox')">Create one</span></div>
+      <div class="switch"><span class="lnk" onclick="show('forgotBox')">Forgot password?</span></div>
+    </div>
+    <div id="signupBox" class="hidden">
+      <h1>Create account</h1><p>Start managing your inventory.</p>
+      <div class="fg"><label>Full Name</label><input id="sName"></div>
+      <div class="fg"><label>Email</label><input id="sEmail"></div>
+      <div class="fg"><label>Password</label><input id="sPass" type="password"></div>
+      <button class="btn-p" style="width:100%" onclick="signup()">Create Account</button>
+      <div class="switch">Have an account? <span class="lnk" onclick="show('loginBox')">Sign in</span></div>
+    </div>
+    <div id="forgotBox" class="hidden">
+      <h1>Reset password</h1><p>Request an OTP, then set a new password.</p>
+      <div class="fg"><label>Email</label><input id="fEmail"></div>
+      <button class="btn-s" style="width:100%" onclick="reqOtp()">Send OTP</button><br><br>
+      <div class="fg"><label>OTP</label><input id="fOtp" maxlength="6"></div>
+      <div class="fg"><label>New Password</label><input id="fPass" type="password"></div>
+      <button class="btn-p" style="width:100%" onclick="doReset()">Reset Password</button>
+      <div class="switch"><span class="lnk" onclick="show('loginBox')">Back to login</span></div>
+    </div>
+  </div>
+</div>
+
+<div id="app" class="app hidden">
+  <aside class="side" id="side">
+    <div class="logo"><i>S</i>StockSense</div>
+    <div class="mtit">MAIN</div>
+    <div class="item on" data-p="dashboard" onclick="nav('dashboard')">⌂ Dashboard</div>
+    <div class="item" data-p="products" onclick="nav('products')">▣ Products</div>
+    <div class="mtit">OPERATIONS</div>
+    <div class="item" data-p="receipts" onclick="nav('receipts')">↓ Receipts</div>
+    <div class="item" data-p="deliveries" onclick="nav('deliveries')">↑ Delivery Orders</div>
+    <div class="item" data-p="transfers" onclick="nav('transfers')">⇄ Internal Transfers</div>
+    <div class="item" data-p="adjustments" onclick="nav('adjustments')">± Inventory Adjustment</div>
+    <div class="item" data-p="ledger" onclick="nav('ledger')">☷ Move History</div>
+    <div class="mtit">SETTINGS</div>
+    <div class="item" data-p="warehouses" onclick="nav('warehouses')">⌂ Warehouses</div>
+    <div class="item" data-p="profile" onclick="nav('profile')">● My Profile</div>
+    <div class="item" onclick="logout()" style="margin-top:16px">↪ Logout</div>
+  </aside>
+  <main class="main">
+    <header class="top">
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="mobtn" onclick="document.getElementById('side').classList.toggle('open')">☰</button>
+        <b id="pTitle">Dashboard</b>
+      </div>
+      <div class="who">
+        <div style="text-align:right"><div id="uName" style="font-weight:700;font-size:13px"></div><div id="uRole" style="font-size:11px;color:var(--muted)"></div></div>
+        <div class="av" id="uAv"></div>
+      </div>
+    </header>
+    <section class="content" id="content"></section>
+  </main>
+</div>
+
+<div class="mback" id="mback"><div class="modal">
+  <div class="mhead"><h2 id="mTitle" style="margin:0;font-size:17px"></h2><button class="x" onclick="closeM()">×</button></div>
+  <div class="mbody" id="mBody"></div>
+  <div class="mfoot" id="mFoot"></div>
+</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+function loadDB(){
+  let d=localStorage.getItem('stocksense_db');
+  if(d) return JSON.parse(d);
+  const now=()=>new Date().toISOString().slice(0,19).replace('T',' ');
+  const db={users:[{id:1,name:'Admin User',email:'admin@stocksense.local',password:'admin123',role:'Inventory Manager'}],
+    warehouses:[{id:1,name:'Main Warehouse',code:'WH-MAIN',address:'Hyderabad'},{id:2,name:'Production Warehouse',code:'WH-PROD',address:'Hyderabad'}],
+    locations:[{id:1,warehouseId:1,name:'Main Store',code:'MAIN'},{id:2,warehouseId:2,name:'Production Rack',code:'PROD'}],
+    categories:[{id:1,name:'Raw Material'},{id:2,name:'Finished Goods'},{id:3,name:'Components'},{id:4,name:'Packaging'}],
+    products:[{id:1,name:'Steel Rods',sku:'STL-001',categoryId:1,uom:'Kg',reorderLevel:20},
+      {id:2,name:'Office Chair',sku:'CHR-001',categoryId:2,uom:'Units',reorderLevel:10},
+      {id:3,name:'Steel Sheets',sku:'STL-002',categoryId:1,uom:'Kg',reorderLevel:25},
+      {id:4,name:'Wooden Table',sku:'TBL-001',categoryId:2,uom:'Units',reorderLevel:5},
+      {id:5,name:'Packing Box',sku:'BOX-001',categoryId:4,uom:'Units',reorderLevel:20}],
+    stock:[{productId:1,locationId:1,quantity:120},{productId:1,locationId:2,quantity:30},
+      {productId:2,locationId:1,quantity:25},{productId:2,locationId:2,quantity:5},
+      {productId:3,locationId:1,quantity:60},{productId:3,locationId:2,quantity:15},
+      {productId:4,locationId:1,quantity:12},{productId:4,locationId:2,quantity:2},
+      {productId:5,locationId:1,quantity:100},{productId:5,locationId:2,quantity:30}],
+    receipts:[],deliveries:[],transfers:[],adjustments:[],ledger:[],otps:[],
+    seq:{user:2,warehouse:3,location:3,category:5,product:6,receipt:1,delivery:1,transfer:1,adjustment:1,ledger:1}};
+  saveDB(db);return db;
+}
+function saveDB(d){localStorage.setItem('stocksense_db',JSON.stringify(d))}
+let DB=loadDB();
+let session=JSON.parse(sessionStorage.getItem('ss_session')||'null');
+function nextId(k){DB.seq[k]++;saveDB(DB);return DB.seq[k]}
+function ref(prefix){return prefix+'-'+Date.now().toString().slice(-8)}
+function now(){return new Date().toLocaleString()}
+function toast(msg,type='ok'){const t=$('toast');t.textContent=msg;t.className='toast show '+type;setTimeout(()=>t.className='toast',2800)}
+function esc(v){return v===null||v===undefined?'':String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function num(v){return Number(v||0).toLocaleString()}
+function badge(s){let c='b-draft';if(s==='Done')c='b-done';if(s==='Ready'||s==='Waiting')c='b-ready';if(s==='Canceled')c='b-cancel';return `<span class="badge ${c}">${esc(s)}</span>`}
+function opWh(o){if(o.type==='Receipt'||o.type==='Delivery')return o.warehouseId;if(o.type==='Internal'){const l=DB.locations.find(x=>x.id==o.fromLocation);return l?l.warehouseId:null}if(o.type==='Adjustment'){const l=DB.locations.find(x=>x.id==o.locationId);return l?l.warehouseId:null}}
+function opCats(o){const ids=(o.items||[]).map(i=>i.productId);if(o.type==='Adjustment')ids.push(o.productId);return [...new Set(ids.map(pid=>{const p=prod(pid);return p?p.categoryId:null}).filter(Boolean))]}
+function getAllOperations(){
+  const recs=DB.receipts.map(r=>({type:'Receipt',id:r.id,reference:r.reference,status:r.status,party:r.supplier,warehouseId:r.warehouseId,items:r.items,createdAt:r.createdAt}));
+  const dels=DB.deliveries.map(r=>({type:'Delivery',id:r.id,reference:r.reference,status:r.status,party:r.customer,warehouseId:r.warehouseId,items:r.items,createdAt:r.createdAt}));
+  const trs=DB.transfers.map(r=>({type:'Internal',id:r.id,reference:r.reference,status:r.status,party:locName(r.fromLocation)+' → '+locName(r.toLocation),fromLocation:r.fromLocation,items:r.items,createdAt:r.createdAt}));
+  const adjs=DB.adjustments.map(a=>({type:'Adjustment',id:a.id,reference:a.reference,status:a.status||'Done',party:a.reason||'Stock count',locationId:a.locationId,productId:a.productId,createdAt:a.createdAt}));
+  return [...recs,...dels,...trs,...adjs].sort((a,b)=>b.id-a.id||a.type.localeCompare(b.type));
+}
+
+function getStock(pid,lid){const r=DB.stock.find(s=>s.productId==pid&&s.locationId==lid);return r?r.quantity:0}
+function setStock(pid,lid,q){let r=DB.stock.find(s=>s.productId==pid&&s.locationId==lid);if(r)r.quantity=q;else DB.stock.push({productId:pid,locationId:lid,quantity:q})}
+function totalStock(pid){return DB.stock.filter(s=>s.productId==pid).reduce((a,s)=>a+s.quantity,0)}
+function addLedger(pid,lid,op,reference,change,after,note){DB.ledger.unshift({id:nextId('ledger'),productId:pid,locationId:lid,operationType:op,reference,quantityChange:change,quantityAfter:after,note:note||'',createdAt:now()})}
+function locName(id){const l=DB.locations.find(x=>x.id==id);return l?l.name:'-'}
+function whOfLoc(id){const l=DB.locations.find(x=>x.id==id);const w=DB.warehouses.find(w=>w.id==(l&&l.warehouseId));return w?w.name:'-'}
+function prod(id){return DB.products.find(p=>p.id==id)}
+
+function show(id){['loginBox','signupBox','forgotBox'].forEach(b=>$(b).classList.add('hidden'));$(id).classList.remove('hidden')}
+function login(){
+  const email=$('lEmail').value.trim().toLowerCase(),pass=$('lPass').value;
+  const u=DB.users.find(u=>u.email===email&&u.password===pass);
+  if(!u){toast('Invalid email or password','err');return}
+  session={userId:u.id};sessionStorage.setItem('ss_session',JSON.stringify(session));
+  toast('Welcome back!');showApp();
+}
+function signup(){
+  const name=$('sName').value.trim(),email=$('sEmail').value.trim().toLowerCase(),pass=$('sPass').value;
+  if(!name||!email||!pass){toast('All fields are required','err');return}
+  if(pass.length<6){toast('Password must be at least 6 characters','err');return}
+  if(DB.users.some(u=>u.email===email)){toast('Email already registered','err');return}
+  const u={id:nextId('user'),name,email,password:pass,role:'Inventory Manager'};
+  DB.users.push(u);saveDB(DB);
+  session={userId:u.id};sessionStorage.setItem('ss_session',JSON.stringify(session));
+  toast('Account created!');showApp();
+}
+function reqOtp(){
+  const email=$('fEmail').value.trim().toLowerCase();
+  if(!DB.users.some(u=>u.email===email)){toast('If the account exists, an OTP has been generated.');return}
+  const otp=String(Math.floor(100000+Math.random()*900000));
+  DB.otps.push({email,otp,expires:Date.now()+10*60000,used:false});saveDB(DB);
+  toast('Demo OTP: '+otp,'ok');
+}
+function doReset(){
+  const email=$('fEmail').value.trim().toLowerCase(),otp=$('fOtp').value.trim(),pass=$('fPass').value;
+  if(pass.length<6){toast('Password must be at least 6 characters','err');return}
+  const row=[...DB.otps].reverse().find(o=>o.email===email&&o.otp===otp&&!o.used);
+  if(!row){toast('Invalid OTP','err');return}
+  if(Date.now()>row.expires){toast('OTP expired','err');return}
+  const u=DB.users.find(u=>u.email===email);u.password=pass;row.used=true;saveDB(DB);
+  toast('Password reset successfully');show('loginBox');
+}
+function logout(){session=null;sessionStorage.removeItem('ss_session');$('app').classList.add('hidden');$('authPage').classList.remove('hidden');show('loginBox')}
+function curUser(){return DB.users.find(u=>u.id===session.userId)}
+function checkAuth(){if(session&&curUser())showApp();else show('loginBox')}
+
+function showApp(){
+  $('authPage').classList.add('hidden');$('app').classList.remove('hidden');
+  const u=curUser();$('uName').textContent=u.name;$('uRole').textContent=u.role;$('uAv').textContent=u.name[0].toUpperCase();
+  nav('dashboard');
+}
+function nav(page){
+  document.querySelectorAll('.item[data-p]').forEach(i=>i.classList.toggle('on',i.dataset.p===page));
+  const titles={dashboard:'Dashboard',products:'Products',receipts:'Receipts',deliveries:'Delivery Orders',transfers:'Internal Transfers',adjustments:'Inventory Adjustment',ledger:'Move History',warehouses:'Warehouses',profile:'My Profile'};
+  $('pTitle').textContent=titles[page];
+  ({dashboard:renderDashboard,products:renderProducts,receipts:renderReceipts,deliveries:renderDeliveries,transfers:renderTransfers,adjustments:renderAdjustments,ledger:renderLedger,warehouses:renderWarehouses,profile:renderProfile})[page]();
+  $('side').classList.remove('open');
+}
+function openM(){$('mback').classList.add('show')}
+function closeM(){$('mback').classList.remove('show')}
+
+function renderDashboard(){
+  const active=DB.products;
+  let low=0,out=0;
+  active.forEach(p=>{const t=totalStock(p.id);if(t<=0)out++;else if(t<=p.reorderLevel)low++});
+  const total=DB.stock.reduce((a,s)=>a+s.quantity,0);
+  const notDone=r=>r.status!=='Done'&&r.status!=='Canceled';
+  const pendR=DB.receipts.filter(notDone).length;
+  const pendD=DB.deliveries.filter(notDone).length;
+  const pendT=DB.transfers.filter(notDone).length;
+  $('content').innerHTML=`
+  <div class="phead"><div><h1>Inventory Dashboard</h1><p>Monitor your stock operations in real time.</p></div>
+  <button class="btn-p" onclick="nav('receipts')">+ New Operation</button></div>
+  <div class="kpis">
+    ${kpi('▣',total,'Total Products in Stock')}
+    ${kpi('!',low,'Low Stock Items')}
+    ${kpi('×',out,'Out of Stock Items')}
+    ${kpi('↓',pendR,'Pending Receipts')}
+    ${kpi('↑',pendD,'Pending Deliveries')}
+    ${kpi('⇄',pendT,'Internal Transfers Scheduled')}
+  </div>
+  <div class="card"><div class="chead">Operations<span style="font-weight:400;color:var(--muted);font-size:12px">Filter across every document type</span></div>
+  <div class="cbody">
+  <div class="toolbar">
+    <select id="fType" onchange="filterOperations()"><option value="">All Document Types</option><option>Receipt</option><option>Delivery</option><option>Internal</option><option>Adjustment</option></select>
+    <select id="fStatus" onchange="filterOperations()"><option value="">All Statuses</option><option>Draft</option><option>Waiting</option><option>Ready</option><option>Done</option><option>Canceled</option></select>
+    <select id="fWh" onchange="filterOperations()"><option value="">All Warehouses</option>${DB.warehouses.map(w=>`<option value="${w.id}">${esc(w.name)}</option>`).join('')}</select>
+    <select id="fCat" onchange="filterOperations()"><option value="">All Categories</option>${DB.categories.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select>
+  </div>
+  <table><thead><tr><th>Type</th><th>Reference</th><th>Party / Route</th><th>Warehouse</th><th>Status</th><th>Date</th></tr></thead><tbody id="opsTbody"></tbody></table>
+  </div></div>
+  <div class="grid2">
+    <div class="card"><div class="chead">Recent Stock Movements</div><div class="cbody" style="padding:0">
+    <table><thead><tr><th>Product</th><th>Op</th><th>Ref</th><th>Change</th><th>Time</th></tr></thead><tbody>
+    ${DB.ledger.slice(0,6).map(r=>{const p=prod(r.productId);return `<tr><td><b>${esc(p?p.name:'-')}</b></td><td>${esc(r.operationType)}</td><td class="mono">${esc(r.reference)}</td><td class="${r.quantityChange>=0?'pos':'neg'}">${r.quantityChange>=0?'+':''}${r.quantityChange}</td><td>${esc(r.createdAt)}</td></tr>`}).join('')||'<tr><td colspan="5" style="text-align:center;color:#888;padding:24px">No movements yet.</td></tr>'}
+    </tbody></table></div></div>
+    <div class="card"><div class="chead">Inventory Alerts</div><div class="cbody">
+      <div class="alert a-amber"><b>${low}</b> low-stock products<div style="color:#888;font-size:12px">Review reorder rules.</div></div>
+      <div class="alert a-red"><b>${out}</b> out-of-stock products<div style="color:#888;font-size:12px">Replenishment may be required.</div></div>
+      <div class="alert a-blue"><b>${pendT}</b> internal transfers scheduled</div>
+    </div></div>
+  </div>`;
+  filterOperations();
+}
+function filterOperations(){
+  const t=$('fType').value,s=$('fStatus').value,w=$('fWh').value,c=$('fCat').value;
+  const rows=getAllOperations().filter(o=>(!t||o.type===t)&&(!s||o.status===s)&&(!w||String(opWh(o))===w)&&(!c||opCats(o).map(String).includes(c))).slice(0,25);
+  $('opsTbody').innerHTML=rows.map(o=>{const wh=DB.warehouses.find(x=>x.id==opWh(o));return `<tr><td>${esc(o.type)}</td><td class="mono"><b>${esc(o.reference)}</b></td><td>${esc(o.party)}</td><td>${esc(wh?wh.name:'-')}</td><td>${badge(o.status)}</td><td>${esc(o.createdAt)}</td></tr>`}).join('')||'<tr><td colspan="6" style="text-align:center;padding:24px;color:#888">No operations match these filters.</td></tr>';
+}
+function kpi(icon,val,label){return `<div class="kpi"><div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--muted);font-size:12.5px">${label}</span><div style="width:34px;height:34px;background:#eef0ff;color:var(--accent);border-radius:9px;display:grid;place-items:center">${icon}</div></div><b>${num(val)}</b></div>`}
+
+function renderProducts(){
+  $('content').innerHTML=`
+  <div class="phead"><div><h1>Products</h1><p>Manage SKUs, categories, stock and reorder rules.</p></div>
+  <div style="display:flex;gap:8px"><button class="btn-s" onclick="openCatModal()">+ Category</button><button class="btn-p" onclick="openProductModal()">+ Create Product</button></div></div>
+  <div class="card"><div class="chead">Product Catalog<span style="font-weight:400;color:var(--muted);font-size:12px">${DB.products.length} products</span></div>
+  <div class="cbody">
+  <div class="toolbar"><input id="pSearch" placeholder="Search product or SKU..." oninput="filterProducts()">
+  <select id="pCat" onchange="filterProducts()"><option value="">All Categories</option>${DB.categories.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select></div>
+  <table><thead><tr><th>Product</th><th>SKU</th><th>Category</th><th>UOM</th><th>Stock</th><th>Reorder</th><th>Status</th><th></th></tr></thead><tbody id="pTbody"></tbody></table>
+  </div></div>`;
+  filterProducts();
+}
+function filterProducts(){
+  const s=($('pSearch').value||'').toLowerCase(),c=$('pCat').value;
+  const rows=DB.products.filter(p=>(p.name.toLowerCase().includes(s)||p.sku.toLowerCase().includes(s))&&(!c||p.categoryId==c));
+  $('pTbody').innerHTML=rows.map(p=>{
+    const t=totalStock(p.id);const cat=DB.categories.find(c=>c.id==p.categoryId);
+    let cls=t<=0?'style="color:var(--red);font-weight:800"':t<=p.reorderLevel?'style="color:var(--amber);font-weight:800"':'style="font-weight:800"';
+    let st=t<=0?'<span class="badge b-draft" style="background:#fdeceb;color:var(--red)">Out of Stock</span>':t<=p.reorderLevel?'<span class="badge" style="background:#fff4e5;color:var(--amber)">Low Stock</span>':'<span class="badge b-done">In Stock</span>';
+    return `<tr><td><b>${esc(p.name)}</b></td><td class="mono">${esc(p.sku)}</td><td>${esc(cat?cat.name:'-')}</td><td>${esc(p.uom)}</td><td><span ${cls}>${num(t)}</span></td><td>${num(p.reorderLevel)}</td><td>${st}</td><td><button class="btn-s" onclick="viewProduct(${p.id})">View</button></td></tr>`;
+  }).join('')||'<tr><td colspan="8" style="text-align:center;color:#888;padding:30px">No products found.</td></tr>';
+}
+function viewProduct(id){
+  const p=prod(id);const cat=DB.categories.find(c=>c.id==p.categoryId);
+  const rows=DB.locations.map(l=>({l,q:getStock(id,l.id)}));
+  $('mTitle').textContent='Product Details';
+  $('mBody').innerHTML=`<div class="grid2"><div><label>Product</label>${esc(p.name)}</div><div><label>SKU</label><span class="mono">${esc(p.sku)}</span></div>
+  <div><label>Category</label>${esc(cat?cat.name:'-')}</div><div><label>Unit</label>${esc(p.uom)}</div></div><br>
+  <h3 style="font-size:14px">Stock by Location</h3><table><thead><tr><th>Warehouse</th><th>Location</th><th>Qty</th></tr></thead><tbody>
+  ${rows.map(r=>`<tr><td>${esc(whOfLoc(r.l.id))}</td><td>${esc(r.l.name)}</td><td><b>${num(r.q)}</b></td></tr>`).join('')}
+  </tbody></table>`;
+  $('mFoot').innerHTML=`<button class="btn-s" onclick="closeM()">Close</button>`;openM();
+}
+function openProductModal(){
+  $('mTitle').textContent='Create Product';
+  $('mBody').innerHTML=`<div class="grid2">
+  <div class="fg"><label>Product Name</label><input id="npName" placeholder="Steel Rods"></div>
+  <div class="fg"><label>SKU / Code</label><input id="npSku" placeholder="STL-001"></div>
+  <div class="fg"><label>Category</label><select id="npCat"><option value="">Select</option>${DB.categories.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select></div>
+  <div class="fg"><label>Unit of Measure</label><select id="npUom"><option>Units</option><option>Kg</option><option>Liter</option><option>Meter</option><option>Box</option></select></div>
+  <div class="fg"><label>Reorder Level</label><input id="npReorder" type="number" value="0" min="0"></div>
+  <div class="fg"><label>Initial Stock</label><input id="npInit" type="number" value="0" min="0"></div></div>
+  <div class="fg"><label>Initial Stock Location</label><select id="npLoc"><option value="">Select</option>${DB.locations.map(l=>`<option value="${l.id}">${esc(whOfLoc(l.id))} — ${esc(l.name)}</option>`).join('')}</select></div>`;
+  $('mFoot').innerHTML=`<button class="btn-s" onclick="closeM()">Cancel</button><button class="btn-p" onclick="createProduct()">Create Product</button>`;
+  openM();
+}
+function createProduct(){
+  const name=$('npName').value.trim(),sku=$('npSku').value.trim().toUpperCase();
+  if(!name||!sku){toast('Name and SKU are required','err');return}
+  if(DB.products.some(p=>p.sku===sku)){toast('SKU already exists','err');return}
+  const p={id:nextId('product'),name,sku,categoryId:$('npCat').value||null,uom:$('npUom').value,reorderLevel:Number($('npReorder').value||0)};
+  DB.products.push(p);
+  const init=Number($('npInit').value||0),loc=$('npLoc').value;
+  if(init&&loc){setStock(p.id,Number(loc),init);addLedger(p.id,Number(loc),'Initial Stock','INITIAL',init,init,'Initial product stock')}
+  saveDB(DB);closeM();renderProducts();toast('Product created successfully');
+}
+function openCatModal(){
+  $('mTitle').textContent='New Category';
+  $('mBody').innerHTML=`<div class="fg"><label>Category Name</label><input id="ncName" placeholder="Consumables"></div>
+  <div class="fg"><label>Description (optional)</label><textarea id="ncDesc"></textarea></div>`;
+  $('mFoot').innerHTML=`<button class="btn-s" onclick="closeM()">Cancel</button><button class="btn-p" onclick="createCategory()">Create Category</button>`;
+  openM();
+}
+function createCategory(){
+  const name=$('ncName').value.trim();
+  if(!name){toast('Category name required','err');return}
+  if(DB.categories.some(c=>c.name.toLowerCase()===name.toLowerCase())){toast('Category already exists','err');return}
+  DB.categories.push({id:nextId('category'),name,description:$('ncDesc').value.trim()});
+  saveDB(DB);closeM();renderProducts();toast('Category created');
+}
+
+function renderReceipts(){
+  $('content').innerHTML=`<div class="phead"><div><h1>Receipts</h1><p>Receive incoming stock from suppliers.</p></div>
+  <button class="btn-p" onclick="openReceiptModal()">+ New Receipt</button></div>
+  <div class="card"><div class="chead">Incoming Stock</div><table><thead><tr><th>Reference</th><th>Supplier</th><th>Warehouse</th><th>Qty</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody>
+  ${DB.receipts.slice().reverse().map(r=>{const w=DB.warehouses.find(w=>w.id==r.warehouseId);const q=r.items.reduce((a,i)=>a+i.quantity,0);
+  return `<tr><td class="mono"><b>${esc(r.reference)}</b></td><td>${esc(r.supplier)}</td><td>${esc(w?w.name:'-')}</td><td>${num(q)}</td><td>${badge(r.status)}</td><td>${esc(r.createdAt)}</td><td>${r.status==='Ready'?`<button class="btn-g" onclick="validateReceipt(${r.id})">Validate</button> <button class="btn-d" onclick="cancelReceipt(${r.id})">Cancel</button>`:r.status==='Done'?'<span style="color:#888">Completed</span>':'<span style="color:#888">—</span>'}</td></tr>`}).join('')||'<tr><td colspan="7" style="text-align:center;padding:30px;color:#888">No receipts yet.</td></tr>'}
+  </tbody></table></div>`;
+}
+function openReceiptModal(){
+  $('mTitle').textContent='New Receipt';
+  $('mBody').innerHTML=`<div class="fg"><label>Supplier</label><input id="rSupplier" placeholder="ABC Steel Suppliers"></div>
+  <div class="fg"><label>Warehouse</label><select id="rWh">${DB.warehouses.map(w=>`<option value="${w.id}">${esc(w.name)}</option>`).join('')}</select></div>
+  <div class="fg"><label>Product</label><select id="rProd">${DB.products.map(p=>`<option value="${p.id}">${esc(p.name)} (${esc(p.sku)})</option>`).join('')}</select></div>
+  <div class="fg"><label>Location</label><select id="rLoc">${DB.locations.map(l=>`<option value="${l.id}">${esc(whOfLoc(l.id))} — ${esc(l.name)}</option>`).join('')}</select></div>
+  <div class="fg"><label>Quantity Received</label><input id="rQty" type="number" min="0.01" step="0.01"></div>`;
+  $('mFoot').innerHTML=`<button class="btn-s" onclick="closeM()">Cancel</button><button class="btn-p" onclick="createReceipt()">Create Receipt</button>`;
+  openM();
+}
+function createReceipt(){
+  const supplier=$('rSupplier').value.trim(),qty=Number($('rQty').value);
+  if(!supplier||!qty||qty<=0){toast('Supplier and a valid quantity are required','err');return}
+  const r={id:nextId('receipt'),reference:ref('REC'),supplier,warehouseId:Number($('rWh').value),status:'Ready',createdAt:now(),
+    items:[{productId:Number($('rProd').value),locationId:Number($('rLoc').value),quantity:qty}]};
+  DB.receipts.push(r);saveDB(DB);closeM();toast('Receipt created. Validate it to increase stock.');renderReceipts();
+}
+function validateReceipt(id){
+  if(!confirm('Validate this receipt? Stock will increase.'))return;
+  const r=DB.receipts.find(x=>x.id===id);
+  r.items.forEach(it=>{const cur=getStock(it.productId,it.locationId);const nw=cur+it.quantity;setStock(it.productId,it.locationId,nw);addLedger(it.productId,it.locationId,'Receipt',r.reference,it.quantity,nw,'Received from '+r.supplier)});
+  r.status='Done';saveDB(DB);toast('Receipt validated. Stock increased.');renderReceipts();
+}
+function cancelReceipt(id){
+  if(!confirm('Cancel this receipt?'))return;
+  const r=DB.receipts.find(x=>x.id===id);r.status='Canceled';saveDB(DB);toast('Receipt canceled');renderReceipts();
+}
+
+function renderDeliveries(){
+  $('content').innerHTML=`<div class="phead"><div><h1>Delivery Orders</h1><p>Pick, pack and dispatch outgoing stock.</p></div>
+  <button class="btn-p" onclick="openDeliveryModal()">+ New Delivery</button></div>
+  <div class="card"><table><thead><tr><th>Reference</th><th>Customer</th><th>Warehouse</th><th>Qty</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody>
+  ${DB.deliveries.slice().reverse().map(r=>{const w=DB.warehouses.find(w=>w.id==r.warehouseId);const q=r.items.reduce((a,i)=>a+i.quantity,0);
+  return `<tr><td class="mono"><b>${esc(r.reference)}</b></td><td>${esc(r.customer)}</td><td>${esc(w?w.name:'-')}</td><td>${num(q)}</td><td>${badge(r.status)}</td><td>${esc(r.createdAt)}</td><td>${r.status==='Ready'?`<button class="btn-d" onclick="validateDelivery(${r.id})">Validate</button> <button class="btn-s" onclick="cancelDelivery(${r.id})">Cancel</button>`:r.status==='Done'?'<span style="color:#888">Completed</span>':'<span style="color:#888">—</span>'}</td></tr>`}).join('')||'<tr><td colspan="7" style="text-align:center;padding:30px;color:#888">No delivery orders yet.</td></tr>'}
+  </tbody></table></div>`;
+}
+function openDeliveryModal(){
+  $('mTitle').textContent='New Delivery Order';
+  $('mBody').innerHTML=`<div class="fg"><label>Customer</label><input id="dCust" placeholder="Customer name"></div>
+  <div class="fg"><label>Warehouse</label><select id="dWh">${DB.warehouses.map(w=>`<option value="${w.id}">${esc(w.name)}</option>`).join('')}</select></div>
+  <div class="fg"><label>Product</label><select id="dProd">${DB.products.map(p=>`<option value="${p.id}">${esc(p.name)} (${esc(p.sku)})</option>`).join('')}</select></div>
+  <div class="fg"><label>Location</label><select id="dLoc">${DB.locations.map(l=>`<option value="${l.id}">${esc(whOfLoc(l.id))} — ${esc(l.name)}</option>`).join('')}</select></div>
+  <div class="fg"><label>Quantity</label><input id="dQty" type="number" min="0.01" step="0.01"></div>`;
+  $('mFoot').innerHTML=`<button class="btn-s" onclick="closeM()">Cancel</button><button class="btn-p" onclick="createDelivery()">Create Delivery</button>`;
+  openM();
+}
+function createDelivery(){
+  const customer=$('dCust').value.trim(),pid=Number($('dProd').value),lid=Number($('dLoc').value),qty=Number($('dQty').value);
+  if(!customer||!qty||qty<=0){toast('Customer and a valid quantity are required','err');return}
+  const avail=getStock(pid,lid);
+  if(avail<qty){toast('Insufficient stock. Available: '+avail,'err');return}
+  const r={id:nextId('delivery'),reference:ref('DEL'),customer,warehouseId:Number($('dWh').value),status:'Ready',createdAt:now(),items:[{productId:pid,locationId:lid,quantity:qty}]};
+  DB.deliveries.push(r);saveDB(DB);closeM();toast('Delivery created. Validate it to decrease stock.');renderDeliveries();
+}
+function validateDelivery(id){
+  if(!confirm('Validate this delivery? Stock will decrease.'))return;
+  const r=DB.deliveries.find(x=>x.id===id);
+  for(const it of r.items){const cur=getStock(it.productId,it.locationId);if(cur<it.quantity){toast('Insufficient stock. Available: '+cur,'err');return}}
+  r.items.forEach(it=>{const cur=getStock(it.productId,it.locationId);const nw=cur-it.quantity;setStock(it.productId,it.locationId,nw);addLedger(it.productId,it.locationId,'Delivery',r.reference,-it.quantity,nw,'Delivered to '+r.customer)});
+  r.status='Done';saveDB(DB);toast('Delivery validated. Stock decreased.');renderDeliveries();
+}
+function cancelDelivery(id){
+  if(!confirm('Cancel this delivery order?'))return;
+  const r=DB.deliveries.find(x=>x.id===id);r.status='Canceled';saveDB(DB);toast('Delivery canceled');renderDeliveries();
+}
+
+function renderTransfers(){
+  $('content').innerHTML=`<div class="phead"><div><h1>Internal Transfers</h1><p>Move stock between warehouses and locations.</p></div>
+  <button class="btn-p" onclick="openTransferModal()">+ New Transfer</button></div>
+  <div class="card"><table><thead><tr><th>Reference</th><th>From</th><th>To</th><th>Qty</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody>
+  ${DB.transfers.slice().reverse().map(r=>{const q=r.items.reduce((a,i)=>a+i.quantity,0);
+  return `<tr><td class="mono"><b>${esc(r.reference)}</b></td><td>${esc(locName(r.fromLocation))}</td><td>${esc(locName(r.toLocation))}</td><td>${num(q)}</td><td>${badge(r.status)}</td><td>${esc(r.createdAt)}</td><td>${r.status==='Ready'?`<button class="btn-g" onclick="validateTransfer(${r.id})">Validate</button> <button class="btn-d" onclick="cancelTransfer(${r.id})">Cancel</button>`:r.status==='Done'?'<span style="color:#888">Completed</span>':'<span style="color:#888">—</span>'}</td></tr>`}).join('')||'<tr><td colspan="7" style="text-align:center;padding:30px;color:#888">No transfers yet.</td></tr>'}
+  </tbody></table></div>`;
+}
+function openTransferModal(){
+  $('mTitle').textContent='New Internal Transfer';
+  $('mBody').innerHTML=`<div class="fg"><label>From Location</label><select id="tFrom">${DB.locations.map(l=>`<option value="${l.id}">${esc(whOfLoc(l.id))} — ${esc(l.name)}</option>`).join('')}</select></div>
+  <div class="fg"><label>To Location</label><select id="tTo">${DB.locations.map(l=>`<option value="${l.id}">${esc(whOfLoc(l.id))} — ${esc(l.name)}</option>`).join('')}</select></div>
+  <div class="fg"><label>Product</label><select id="tProd">${DB.products.map(p=>`<option value="${p.id}">${esc(p.name)} (${esc(p.sku)})</option>`).join('')}</select></div>
+  <div class="fg"><label>Quantity</label><input id="tQty" type="number" min="0.01" step="0.01"></div>`;
+  $('mFoot').innerHTML=`<button class="btn-s" onclick="closeM()">Cancel</button><button class="btn-p" onclick="createTransfer()">Create Transfer</button>`;
+  openM();
+}
+function createTransfer(){
+  const from=Number($('tFrom').value),to=Number($('tTo').value),pid=Number($('tProd').value),qty=Number($('tQty').value);
+  if(from===to){toast('Source and destination cannot be the same','err');return}
+  if(!qty||qty<=0){toast('Enter a valid quantity','err');return}
+  const avail=getStock(pid,from);
+  if(avail<qty){toast('Insufficient stock. Available: '+avail,'err');return}
+  const r={id:nextId('transfer'),reference:ref('TRF'),fromLocation:from,toLocation:to,status:'Ready',createdAt:now(),items:[{productId:pid,quantity:qty}]};
+  DB.transfers.push(r);saveDB(DB);closeM();toast('Transfer created. Validate it to move stock.');renderTransfers();
+}
+function validateTransfer(id){
+  if(!confirm('Validate this transfer? Stock will move between locations.'))return;
+  const r=DB.transfers.find(x=>x.id===id);
+  for(const it of r.items){const cur=getStock(it.productId,r.fromLocation);if(cur<it.quantity){toast('Insufficient stock. Available: '+cur,'err');return}}
+  r.items.forEach(it=>{
+    const fromNew=getStock(it.productId,r.fromLocation)-it.quantity;setStock(it.productId,r.fromLocation,fromNew);
+    const toNew=getStock(it.productId,r.toLocation)+it.quantity;setStock(it.productId,r.toLocation,toNew);
+    addLedger(it.productId,r.fromLocation,'Internal Transfer',r.reference,-it.quantity,fromNew,'Transfer out');
+    addLedger(it.productId,r.toLocation,'Internal Transfer',r.reference,it.quantity,toNew,'Transfer in');
+  });
+  r.status='Done';saveDB(DB);toast('Transfer completed.');renderTransfers();
+}
+function cancelTransfer(id){
+  if(!confirm('Cancel this transfer?'))return;
+  const r=DB.transfers.find(x=>x.id===id);r.status='Canceled';saveDB(DB);toast('Transfer canceled');renderTransfers();
+}
+
+function renderAdjustments(){
+  $('content').innerHTML=`<div class="phead"><div><h1>Inventory Adjustments</h1><p>Correct physical counts and stock mismatches.</p></div>
+  <button class="btn-p" onclick="openAdjModal()">+ New Adjustment</button></div>
+  <div class="card"><table><thead><tr><th>Reference</th><th>Product</th><th>Location</th><th>Previous</th><th>Counted</th><th>Diff</th><th>Reason</th><th>Date</th></tr></thead><tbody>
+  ${DB.adjustments.slice().reverse().map(a=>{const p=prod(a.productId);return `<tr><td class="mono"><b>${esc(a.reference)}</b></td><td>${esc(p?p.name:'-')}</td><td>${esc(locName(a.locationId))}</td><td>${num(a.previous)}</td><td>${num(a.counted)}</td><td class="${a.difference>=0?'pos':'neg'}">${a.difference>=0?'+':''}${a.difference}</td><td>${esc(a.reason||'-')}</td><td>${esc(a.createdAt)}</td></tr>`}).join('')||'<tr><td colspan="8" style="text-align:center;padding:30px;color:#888">No adjustments yet.</td></tr>'}
+  </tbody></table></div>`;
+}
+function openAdjModal(){
+  $('mTitle').textContent='Inventory Adjustment';
+  $('mBody').innerHTML=`<div class="fg"><label>Product</label><select id="aProd">${DB.products.map(p=>`<option value="${p.id}">${esc(p.name)} (${esc(p.sku)})</option>`).join('')}</select></div>
+  <div class="fg"><label>Location</label><select id="aLoc">${DB.locations.map(l=>`<option value="${l.id}">${esc(whOfLoc(l.id))} — ${esc(l.name)}</option>`).join('')}</select></div>
+  <div class="fg"><label>Physical Counted Quantity</label><input id="aQty" type="number" min="0" step="0.01"></div>
+  <div class="fg"><label>Reason</label><textarea id="aReason" placeholder="Damaged, lost, recount, correction..."></textarea></div>`;
+  $('mFoot').innerHTML=`<button class="btn-s" onclick="closeM()">Cancel</button><button class="btn-p" onclick="createAdj()">Apply Adjustment</button>`;
+  openM();
+}
+function createAdj(){
+  const pid=Number($('aProd').value),lid=Number($('aLoc').value),counted=Number($('aQty').value||0),reason=$('aReason').value.trim();
+  const prev=getStock(pid,lid),diff=counted-prev;
+  setStock(pid,lid,counted);
+  const a={id:nextId('adjustment'),reference:ref('ADJ'),productId:pid,locationId:lid,counted,previous:prev,difference:diff,reason,createdAt:now()};
+  DB.adjustments.push(a);addLedger(pid,lid,'Adjustment',a.reference,diff,counted,reason||'Stock adjustment');saveDB(DB);
+  closeM();toast('Adjustment applied. Difference: '+diff);renderAdjustments();
+}
+
+function renderLedger(){
+  $('content').innerHTML=`<div class="phead"><div><h1>Stock Ledger</h1><p>Complete history of stock movements.</p></div></div>
+  <div class="card"><div class="cbody">
+  <div class="toolbar"><input id="lSearch" placeholder="Search product, SKU or reference..." oninput="filterLedger()">
+  <select id="lOp" onchange="filterLedger()"><option value="">All Operations</option><option>Receipt</option><option>Delivery</option><option>Internal Transfer</option><option>Adjustment</option><option>Initial Stock</option></select></div>
+  <table><thead><tr><th>Date</th><th>Product</th><th>Operation</th><th>Reference</th><th>Warehouse</th><th>Location</th><th>Change</th><th>Balance</th><th>Note</th></tr></thead><tbody id="lTbody"></tbody></table>
+  </div></div>`;
+  filterLedger();
+}
+function filterLedger(){
+  const s=($('lSearch').value||'').toLowerCase(),op=$('lOp').value;
+  const rows=DB.ledger.filter(r=>{const p=prod(r.productId);const text=((p?p.name:'')+' '+(p?p.sku:'')+' '+r.reference).toLowerCase();return text.includes(s)&&(!op||r.operationType===op)});
+  $('lTbody').innerHTML=rows.map(r=>{const p=prod(r.productId);return `<tr><td>${esc(r.createdAt)}</td><td><b>${esc(p?p.name:'-')}</b><br><small style="color:#888">${esc(p?p.sku:'')}</small></td><td>${esc(r.operationType)}</td><td class="mono">${esc(r.reference)}</td><td>${esc(whOfLoc(r.locationId))}</td><td>${esc(locName(r.locationId))}</td><td class="${r.quantityChange>=0?'pos':'neg'}">${r.quantityChange>=0?'+':''}${r.quantityChange}</td><td><b>${r.quantityAfter}</b></td><td>${esc(r.note)}</td></tr>`}).join('')||'<tr><td colspan="9" style="text-align:center;padding:30px;color:#888">No movements found.</td></tr>';
+}
+
+function renderWarehouses(){
+  $('content').innerHTML=`<div class="phead"><div><h1>Warehouses</h1><p>Manage warehouses and their stock locations.</p></div>
+  <button class="btn-p" onclick="openWhModal()">+ Add Warehouse</button></div>
+  <div class="grid2">
+  <div class="card"><div class="chead">Warehouses</div><table><thead><tr><th>Name</th><th>Code</th><th>Address</th><th>Locations</th></tr></thead><tbody>
+  ${DB.warehouses.map(w=>`<tr><td><b>${esc(w.name)}</b></td><td class="mono">${esc(w.code)}</td><td>${esc(w.address)}</td><td>${DB.locations.filter(l=>l.warehouseId==w.id).length}</td></tr>`).join('')}
+  </tbody></table></div>
+  <div class="card"><div class="chead">Locations<button class="btn-s" onclick="openLocModal()">+ Location</button></div><table><thead><tr><th>Warehouse</th><th>Location</th><th>Code</th></tr></thead><tbody>
+  ${DB.locations.map(l=>`<tr><td>${esc(whOfLoc(l.id))}</td><td>${esc(l.name)}</td><td class="mono">${esc(l.code)}</td></tr>`).join('')}
+  </tbody></table></div></div>`;
+}
+function openWhModal(){
+  $('mTitle').textContent='Add Warehouse';
+  $('mBody').innerHTML=`<div class="fg"><label>Warehouse Name</label><input id="wName" placeholder="Main Warehouse"></div>
+  <div class="fg"><label>Warehouse Code</label><input id="wCode" placeholder="WH-001"></div>
+  <div class="fg"><label>Address</label><input id="wAddr" placeholder="City"></div>`;
+  $('mFoot').innerHTML=`<button class="btn-s" onclick="closeM()">Cancel</button><button class="btn-p" onclick="createWh()">Add Warehouse</button>`;
+  openM();
+}
+function createWh(){
+  const name=$('wName').value.trim(),code=$('wCode').value.trim().toUpperCase();
+  if(!name||!code){toast('Name and code are required','err');return}
+  if(DB.warehouses.some(w=>w.code===code)){toast('Warehouse code already exists','err');return}
+  const w={id:nextId('warehouse'),name,code,address:$('wAddr').value.trim()};
+  DB.warehouses.push(w);
+  DB.locations.push({id:nextId('location'),warehouseId:w.id,name:'Main Location',code:'MAIN'});
+  saveDB(DB);closeM();renderWarehouses();toast('Warehouse created');
+}
+function openLocModal(){
+  $('mTitle').textContent='Add Location';
+  $('mBody').innerHTML=`<div class="fg"><label>Warehouse</label><select id="lWh">${DB.warehouses.map(w=>`<option value="${w.id}">${esc(w.name)}</option>`).join('')}</select></div>
+  <div class="fg"><label>Location Name</label><input id="lName" placeholder="Rack A"></div>
+  <div class="fg"><label>Location Code</label><input id="lCode" placeholder="RACK-A"></div>`;
+  $('mFoot').innerHTML=`<button class="btn-s" onclick="closeM()">Cancel</button><button class="btn-p" onclick="createLoc()">Add Location</button>`;
+  openM();
+}
+function createLoc(){
+  const wh=Number($('lWh').value),name=$('lName').value.trim(),code=$('lCode').value.trim().toUpperCase();
+  if(!name||!code){toast('All fields are required','err');return}
+  if(DB.locations.some(l=>l.warehouseId==wh&&l.code===code)){toast('Location code already exists in this warehouse','err');return}
+  DB.locations.push({id:nextId('location'),warehouseId:wh,name,code});saveDB(DB);closeM();renderWarehouses();toast('Location created');
+}
+
+function renderProfile(){
+  const u=curUser();
+  $('content').innerHTML=`<div class="phead"><div><h1>My Profile</h1><p>Account and workspace information.</p></div></div>
+  <div class="card" style="max-width:640px"><div class="cbody">
+  <div style="display:flex;align-items:center;gap:14px;margin-bottom:24px">
+  <div class="av" style="width:60px;height:60px;font-size:22px">${esc(u.name[0].toUpperCase())}</div>
+  <div><h2 style="margin:0;font-size:19px">${esc(u.name)}</h2><div style="color:var(--muted)">${esc(u.role)}</div></div></div>
+  <div class="grid2">
+  <div><div style="color:var(--muted);font-size:12px">Full Name</div><b>${esc(u.name)}</b></div>
+  <div><div style="color:var(--muted);font-size:12px">Email</div><b>${esc(u.email)}</b></div>
+  <div><div style="color:var(--muted);font-size:12px">Role</div><b>${esc(u.role)}</b></div>
+  <div><div style="color:var(--muted);font-size:12px">System</div><b>StockSense IMS</b></div>
+  </div></div></div>`;
+}
+
+checkAuth();
+</script>
+</body>
+</html>
